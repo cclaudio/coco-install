@@ -1,0 +1,84 @@
+FROM registry.k8s.io/pause:3.9 as pause-bin
+
+FROM registry.access.redhat.com/ubi9/ubi:latest as pause
+RUN curl -L https://github.com/opencontainers/umoci/releases/download/v0.4.7/umoci.amd64 -o /usr/bin/umoci \
+    && chmod +x /usr/bin/umoci \
+    && umoci init --layout pause && umoci new --image pause:k8s \
+    && umoci config --image pause:k8s --config.entrypoint=/pause --author="OSC" \
+    && umoci unpack --rootless --image pause:k8s /pause
+COPY --from=pause-bin /pause /pause/rootfs/pause
+RUN dnf install -y xz \
+    && mv /pause /pause_bundle \
+    && tar -cvJpf /pause-image.tar.xz -C / pause_bundle
+
+FROM registry.access.redhat.com/ubi9/ubi:latest AS kata-initrd
+
+ARG KERNEL_UNAME
+ARG NVIDIA_DRIVER_VERSION
+ARG KATA_RPM_FILENAME
+ARG ORG_ID
+ARG ACTIVATION_KEY
+ARG VERBOSE
+
+WORKDIR /root
+
+COPY default_x509.genkey ${KATA_RPM_FILENAME} /root/
+
+# EPEL is required for busybox and iptables-legacy
+RUN subscription-manager register --org ${ORG_ID} --activationkey ${ACTIVATION_KEY} \
+    && subscription-manager repos --enable codeready-builder-for-rhel-9-x86_64-rpms \
+    && dnf config-manager --add-repo=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo \
+    && dnf config-manager --best --nodocs --setopt=install_weak_deps=False --save \
+    && DRIVER_STREAM=$(echo ${NVIDIA_DRIVER_VERSION} | cut -d '.' -f 1) \
+    && dnf -y module enable nvidia-driver:${DRIVER_STREAM}-open/default \
+    && dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+
+# Install dependencies, including kata-containers
+RUN KERNEL_VERSION=$(echo ${KERNEL_UNAME} | rev | cut -d. -f2- | rev) \    
+    && dnf install -y \
+        xz jq policycoreutils busybox \
+        ${KATA_RPM_FILENAME} \
+        {kernel-core,kernel-devel}-${KERNEL_VERSION} \
+        vulkan-loader \
+        nvidia-container-toolkit \
+        iptables-legacy
+
+# Generate key for kernel module signing
+# NOTE: CONFIG_MODULE_SIG and CONFIG_MODULE_SIG_ALL are both set in RHEL 9 kernel
+RUN openssl req -new -nodes -utf8 -sha256 -days 36500 -batch -x509 \
+        -config /root/default_x509.genkey -outform PEM \
+        -out /root/public_key.pem -keyout /root/private_key.priv
+
+# Build and install nvidia drivers
+RUN curl -LO https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run \
+    && chmod +x ./NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run \
+    && ./NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run -x \
+    && cd ./NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION} \
+    && ./nvidia-installer \
+        -m=kernel-open \
+        --no-rebuild-initramfs \
+        --no-dkms \
+        --no-systemd \
+        --skip-module-load \
+        --no-install-compat32-libs \
+        --ui=none \
+        --no-questions \
+        --expert \
+        --x-library-path=/usr/lib64 \
+        --module-signing-secret-key=/root/private_key.priv \
+        --module-signing-public-key=/root/public_key.pem \
+        --kernel-name=${KERNEL_UNAME} \
+    && echo "${NVIDIA_DRIVER_VERSION}" > /usr/share/nvidia/nvidia_driver_version \
+    && jq -r '.chips[] | .devid' supported-gpus/supported-gpus.json > /usr/share/nvidia/supported-gpu-chips.devid \
+    && rm /root/private_key.priv
+
+# Workaround: initrd-builder.sh requires susdo, but enabling it container adds some unnecessary complexity
+RUN printf '#!/bin/bash \n $@' > /bin/sudo \
+    && chmod +x /bin/sudo
+
+# Workaround: the pause-image.tar.gz in the kata-containers rpm was packaged with wrong permissions
+COPY --from=pause /pause-image.tar.xz /usr/libexec/kata-containers/pause-image/pause-image.tar.gz
+
+# Generate initrd tarball
+RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k ${KERNEL_UNAME} -u \
+    && tar -czvf /host/kata-osbuilder-images.tar.gz -C /usr/share/kata-containers osbuilder-images
