@@ -44,8 +44,8 @@ RUN mkdir -p /root/podvm-binaries \
 
 # Copy kata-agent and rego policy
 COPY agent /root/agent
-RUN mkdir -p /root/kata-opa \
-    && cd /root/agent/usr/libexec/kata-containers \
+RUN cd /root/agent/usr/libexec/kata-containers \
+    && mkdir -p agent/usr/bin kata-opa \
     && cp -fv /root/podvm-binaries/usr/local/bin/kata-agent agent/usr/bin/ \
     && cp -fv /root/podvm-binaries/etc/kata-opa/allow-all.rego kata-opa/
 
