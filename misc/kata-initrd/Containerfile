@@ -74,7 +74,7 @@ RUN subscription-manager unregister \
     && dnf clean all \
     && rm /root/${KATA_RPM_FILENAME}
 
-#############################    
+#############################
 # Stage 2: Build the initrds
 #############################
 
@@ -102,7 +102,14 @@ RUN mkdir -p /root/initrds \
 
 # Create configs tarball
 COPY configs /root/configs
-RUN tar -czvf /kata-configs.tar.gz -C /root/configs .
+RUN cd /root/configs/etc/kata-containers \
+    && mkdir -p \
+        kata-snp/config.d \
+        kata-tdx/config.d \
+        kata-nvidia-gpu/config.d \
+        kata-nvidia-gpu-snp/config.d \
+        kata-nvidia-gpu-tdx/config.d \
+    && tar -czvf /kata-configs.tar.gz -C /root/configs .
 
 ###################################
 # Stage 3: Compose the final image
