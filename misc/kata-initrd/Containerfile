@@ -82,12 +82,12 @@ FROM initrds-builder-setup AS initrds-builder
 
 ARG KERNEL_UNAME
 
-# kata-snp initrd
-RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k "${KERNEL_UNAME}" -t "kata-snp" -a "/root/agent" -u
+# kata-cc initrd
+RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k "${KERNEL_UNAME}" -t "kata-cc" -a "/root/agent" -u
 # kata-nvidia-gpu initrd
 RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k "${KERNEL_UNAME}" -t "kata-nvidia-gpu" -a "/root/agent"
-# kata-nvidia-gpu-snp initrd
-RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k "${KERNEL_UNAME}" -t "kata-nvidia-gpu-snp" -a "/root/agent"
+# kata-nvidia-gpu-cc initrd
+RUN DEBUG=1 /usr/libexec/kata-containers/osbuilder/kata-osbuilder.sh -k "${KERNEL_UNAME}" -t "kata-nvidia-gpu-cc" -a "/root/agent"
 
 # Remove sudo workaround
 RUN rm -f /bin/sudo

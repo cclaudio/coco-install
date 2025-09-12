@@ -34,9 +34,9 @@ ARG_GUEST_COMPONENTS_TARBALL="/root/coco-guest-components.tar.xz"
 # Supported runtime classes
 readonly RUNTIME_CLASSES=( \
   "kata" \
-  "kata-snp" \
+  "kata-cc" \
   "kata-nvidia-gpu" \
-  "kata-nvidia-gpu-snp" \
+  "kata-nvidia-gpu-cc" \
 )
 
 # ANSI colors used for printing messages
@@ -314,7 +314,7 @@ run_kata_rootfs_builder()
             generate_modules_load_conf
             ;;
 
-        "kata-snp" )
+        "kata-cc" )
             AGENT_SOURCE_BIN="${agent_source_bin}" \
             AGENT_POLICY="yes" \
             AGENT_POLICY_FILE="${agent_policy_file}" \
@@ -340,7 +340,7 @@ run_kata_rootfs_builder()
             generate_modules_load_conf
             ;;
 
-        "kata-nvidia-gpu" | "kata-nvidia-gpu-snp" )
+        "kata-nvidia-gpu" | "kata-nvidia-gpu-cc" )
             # systemd-nvidia-cdi
             cp ${ARG_OSBUILDER_DIR}/systemd/nvidia-cdi.service ${DRACUT_ROOTFS}/usr/lib/systemd/system/
             cp ${ARG_OSBUILDER_DIR}/systemd/systemd-nvidia-cdi.sh ${DRACUT_ROOTFS}/usr/lib/systemd/
