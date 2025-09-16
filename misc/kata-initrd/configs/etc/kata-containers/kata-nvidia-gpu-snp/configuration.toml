@@ -13,9 +13,9 @@
 # XXX:   Type: kata
 
 [hypervisor.qemu]
-path = "/usr/libexec/kata-containers/qemu/qemu-system-x86_64-snp-experimental"
-kernel = "/usr/share/kata-containers/osbuilder-images/kata-nvidia-gpu-snp.kernel"
-initrd = "/usr/share/kata-containers/osbuilder-images/kata-nvidia-gpu-snp.initrd"
+path = "/usr/libexec/qemu-kvm"
+kernel = "/usr/share/kata-containers/osbuilder-images/kata-nvidia-gpu-cc.kernel"
+initrd = "/usr/share/kata-containers/osbuilder-images/kata-nvidia-gpu-cc.initrd"
 
 machine_type = "q35"
 
@@ -57,8 +57,8 @@ enable_annotations = [".*"]
 # List of valid annotations values for the hypervisor
 # Each member of the list is a path pattern as described by glob(3).
 # The default if not set is empty (all annotations rejected.)
-# Your distribution recommends: ["/usr/libexec/kata-containers/qemu/qemu-system-x86_64-snp-experimental"]
-valid_hypervisor_paths = ["/usr/libexec/kata-containers/qemu/qemu-system-x86_64-snp-experimental"]
+# Your distribution recommends: ["/usr/libexec/qemu-kvm"]
+valid_hypervisor_paths = ["/usr/libexec/qemu-kvm"]
 
 # SNP 'ID Block' and 'ID Authentication Information Structure'.
 # If one of snp_id_block or snp_id_auth is specified, the other must be specified, too.
@@ -82,11 +82,11 @@ valid_hypervisor_paths = ["/usr/libexec/kata-containers/qemu/qemu-system-x86_64-
 # may stop the virtual machine from booting.
 # To see the list of default parameters, enable hypervisor debug, create a
 # container and look for 'default-kernel-parameters' log entries.
-kernel_params = "agent.hotplug_timeout=20 cgroup_no_v1=all"
+kernel_params = "cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1"
 
 # Path to the firmware.
 # If you want that qemu uses the default firmware leave this option empty
-firmware = "/opt/kata/share/ovmf/AMDSEV.fd"
+firmware = "/usr/share/edk2/ovmf/OVMF.amdsev.fd"
 
 # Path to the firmware volume.
 # firmware TDVF or OVMF can be split into FIRMWARE_VARS.fd (UEFI variables
@@ -192,12 +192,12 @@ disable_block_device_use = false
 shared_fs = "none"
 
 # Path to vhost-user-fs daemon.
-virtio_fs_daemon = "/opt/kata/libexec/virtiofsd"
+virtio_fs_daemon = "/usr/libexec/virtiofsd"
 
 # List of valid annotations values for the virtiofs daemon
 # The default if not set is empty (all annotations rejected.)
-# Your distribution recommends: ["/opt/kata/libexec/virtiofsd"]
-valid_virtio_fs_daemon_paths = ["/opt/kata/libexec/virtiofsd"]
+# Your distribution recommends: ["/usr/libexec/virtiofsd"]
+valid_virtio_fs_daemon_paths = ["/usr/libexec/virtiofsd"]
 
 # Default size of DAX cache in MiB
 virtio_fs_cache_size = 0
@@ -342,7 +342,7 @@ pflashes = []
 # that it is running on top a VMM. This will result in the runtime
 # behaving as it would when running on bare metal.
 #
-#disable_nesting_checks = true
+disable_nesting_checks = true
 
 # This is the msize used for 9p shares. It is the number of bytes
 # used for 9p packet payload.
@@ -544,7 +544,7 @@ kernel_modules=[]
 
 # Agent connection dialing timeout value in seconds
 # (default: 90)
-dial_timeout = 90
+dial_timeout = 500
 
 [runtime]
 # If enabled, the runtime will log additional debug messages to the
