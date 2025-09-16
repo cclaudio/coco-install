@@ -4,7 +4,7 @@
 2. Update the arguments in the `argfile.conf` accordingly
 3. Run command below to build the initrds image
 ```
-podman build . --build-arg-file=./argfile.conf -t kata-initrds:1.0
+podman build . --no-cache --build-arg-file=./argfile.conf -t kata-initrds:1.0
 ```
 If the `-v $PWD:/host` parameter is added to the command line above, the files `kata-initrds.tar.gz` and `kata-configs.tar.gz`
 will also be copied to $PWD.
