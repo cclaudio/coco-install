@@ -335,6 +335,9 @@ run_kata_rootfs_builder()
             cp /usr/lib/systemd/system/systemd-remount-fs.service ${DRACUT_ROOTFS}/usr/lib/systemd/system/
             cp /usr/lib/systemd/systemd-remount-fs ${DRACUT_ROOTFS}/usr/lib/systemd/
 
+            # TDX requires configfs-tsm to access the attestation report
+            systemctl add-wants --root=${DRACUT_ROOTFS} sysinit.target sys-kernel-config.mount
+
             install_trusted_ca_bundle_to_rootfs
 
             generate_modules_load_conf
@@ -368,6 +371,9 @@ run_kata_rootfs_builder()
                     ${ARG_OSBUILDER_DIR}/rootfs-builder/rootfs.sh \
                     -o ${osbuilder_version} \
                     -r ${DRACUT_ROOTFS}
+
+                # TDX requires configfs-tsm to access the attestation report
+                systemctl add-wants --root=${DRACUT_ROOTFS} sysinit.target sys-kernel-config.mount
             fi
 
             # Copy dynamic libraries
