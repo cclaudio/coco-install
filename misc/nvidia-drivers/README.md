@@ -4,5 +4,5 @@
 2. Run command below to build the nvidia-driver image
 
 ```
-podman build . --build-arg-file=./argfile.conf -t rhel10-nvidia-drivers:1.0
+podman build . --build-arg-file=./argfile.conf -t rhel10-nvidia-drivers:580.82.07
 ```
