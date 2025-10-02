@@ -28,8 +28,8 @@ ARG_DELETE_EXISTING_IMAGES=""
 ARG_KEEP_BUILD_DIR=""
 ARG_RUNTIME_CLASS="kata"
 ARG_GENERATE_IMAGE=""
-ARG_PAUSE_IMAGE_TARBALL="/root/pause-bundle.tar.xz"
-ARG_GUEST_COMPONENTS_TARBALL="/root/coco-guest-components.tar.xz"
+ARG_PAUSE_IMAGE_TARBALL="/root/pause-bundle.tar.zst"
+ARG_GUEST_COMPONENTS_TARBALL="/root/coco-guest-components.tar.zst"
 
 # Supported runtime classes
 readonly RUNTIME_CLASSES=( \

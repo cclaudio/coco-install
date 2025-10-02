@@ -26,7 +26,7 @@ RUN subscription-manager register --org ${ORG_ID} --activationkey ${ACTIVATION_K
 # Install dependencies, including kata-containers
 RUN KERNEL_VERSION=$(echo ${KERNEL_UNAME} | rev | cut -d. -f2- | rev) \
     && dnf install -y \
-        xz jq policycoreutils dbus-daemon rsync chrony rsyslog \
+        zstd jq policycoreutils dbus-daemon rsync chrony rsyslog \
         ${KATA_RPM_FILENAME} \
         iptables
 
@@ -35,7 +35,7 @@ RUN KERNEL_VERSION=$(echo ${KERNEL_UNAME} | rev | cut -d. -f2- | rev) \
 COPY --from=rhel10-podvm-payload /pause-bundle.tar.gz /root/
 RUN mkdir -p /root/pause \
     && tar xf pause-bundle.tar.gz -C pause \
-    && tar -cJvf pause-bundle.tar.xz -C pause .
+    && tar --zstd -cvf pause-bundle.tar.zst -C pause .
 
 # Copy and extract podvm-binaries.tar.gz
 COPY --from=rhel10-podvm-payload /podvm-binaries.tar.gz /root/
@@ -54,7 +54,7 @@ RUN mkdir -p /root/coco-guest-components/{usr/local/bin,etc} \
     && cd /root/coco-guest-components \
     && cp -fv /root/podvm-binaries/usr/local/bin/{api-server-rest,attestation-agent,confidential-data-hub,luks-encrypt-storage} usr/local/bin/ \
     && cp -fv /root/podvm-binaries/etc/ocicrypt_config.json etc/ \
-    && tar -cJvf ../coco-guest-components.tar.xz .
+    && tar --zstd -cvf ../coco-guest-components.tar.zst .
 
 # Install files from local filesystem.
 # FIXME: push these files/changes to the kata-containers.rpm

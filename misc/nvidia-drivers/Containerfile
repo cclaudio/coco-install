@@ -22,7 +22,7 @@ RUN subscription-manager register --org ${ORG_ID} --activationkey ${ACTIVATION_K
 RUN KERNEL_VERSION=$(echo ${KERNEL_UNAME} | rev | cut -d. -f2- | rev) \
     && dnf install -y --nogpgcheck nvidia-container-toolkit \
     && dnf install -y \
-        xz jq policycoreutils openssl \
+        jq policycoreutils openssl \
         {kernel-core,kernel-devel}-${KERNEL_VERSION} \
         vulkan-loader \
         iptables
